@@ -233,7 +233,14 @@
                 textChunks.push(fullTextForProcessing.substring(i, i + MAX_CHARS_PER_CHUNK));
             }
 
-            const apiKey = ""; // Canvas will automatically provide the API key at runtime.
+            // IMPORTANT: For deployment on platforms like GitHub Pages, you CANNOT use an empty API key.
+            // You need a secure backend (e.g., a Serverless Function) to proxy your API requests
+            // and securely use your API key. Directly embedding your API key in client-side code
+            // (like this HTML file) is a security risk as it will be exposed to anyone.
+            // In the Canvas environment, the API key is automatically provided at runtime.
+            const apiKey = ""; // Leave this empty for Canvas environment.
+                               // For GitHub Pages, this needs to be handled by a secure backend.
+
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
             for (let i = 0; i < textChunks.length; i++) {
@@ -269,6 +276,10 @@
 
                         if (!response.ok) {
                             const errorData = await response.json();
+                            // Specific error message for API key issue
+                            if (response.status === 403 && errorData.error?.message.includes("unregistered callers")) {
+                                throw new Error('API Key ပြဿနာ။ GitHub Pages တွင် အသုံးပြုရန်အတွက် နောက်ခံဆာဗာ (သို့မဟုတ်) ဆာဗာမဲ့ လုပ်ဆောင်ချက် လိုအပ်ပါသည်။ (API Key issue. A backend/serverless function is needed for GitHub Pages deployment.)');
+                            }
                             throw new Error(`API request failed for chunk ${i + 1}: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
                         }
 
